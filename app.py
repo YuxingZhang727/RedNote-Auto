@@ -86,43 +86,23 @@ def get_accounts():
 @app.route("/api/accounts", methods=["POST"])
 def update_accounts():
     body = request.get_json(force=True)
-    accounts = {"pc": {"cookies_str": ""}, "creator": {"cookies_str": ""}}
-    if ACCOUNTS_PATH.exists():
-        accounts = json.loads(ACCOUNTS_PATH.read_text(encoding="utf-8"))
-
     for which in ("pc", "creator"):
         if body.get(which):
-            accounts.setdefault(which, {})["cookies_str"] = body[which]
-
-    ACCOUNTS_PATH.parent.mkdir(parents=True, exist_ok=True)
-    ACCOUNTS_PATH.write_text(
-        json.dumps(accounts, ensure_ascii=False, indent=2), encoding="utf-8"
-    )
+            xhs_client.save_account_cookie(which, body[which])
     return jsonify({"ok": True})
 
 
 @app.route("/api/accounts/test", methods=["POST"])
-def test_account():
+def api_test_account():
     body = request.get_json(force=True)
     which = body.get("which")
     try:
         accounts = xhs_client.load_accounts()
         cookies_str = accounts[which]["cookies_str"]
-        if which == "pc":
-            xhs_client.call(
-                "pc", "get_user_self_info", {"cookies_str": cookies_str}, retries=2
-            )
-        else:
-            # get_publish_note_info's endpoint gets connection-reset by XHS's
-            # anti-bot layer in this environment regardless of cookie validity;
-            # get_topic is a reliable, lightweight probe for creator-session validity.
-            cookies = xhs_client.cookies_dict_from_str(cookies_str)
-            xhs_client.call(
-                "creator", "get_topic", {"keyword": "test", "cookies": cookies}, retries=2
-            )
-        return jsonify({"ok": True, "message": "连接正常"})
-    except (XhsApiError, KeyError) as exc:
-        return jsonify({"ok": False, "message": str(exc)})
+    except KeyError:
+        return jsonify({"ok": False, "message": f"账号 {which} 未配置"})
+    ok, message = xhs_client.test_account(which, cookies_str)
+    return jsonify({"ok": ok, "message": message})
 
 
 @app.route("/api/explore", methods=["POST"])

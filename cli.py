@@ -1,6 +1,7 @@
 import argparse
 from collections import defaultdict
 
+from core import xhs_client
 from core.collector import collect_by_keyword
 from core.db import (
     get_conn,
@@ -74,6 +75,31 @@ def cmd_publish(args):
     publish_approved(conn, dry_run=args.dry_run)
 
 
+def cmd_cookie(args):
+    if args.set is not None:
+        xhs_client.save_account_cookie(args.which, args.set)
+        print(f"{args.which} cookie 已保存到 config/accounts.json。")
+
+    try:
+        accounts = xhs_client.load_accounts()
+    except xhs_client.XhsApiError as exc:
+        print(exc)
+        return
+    cookies_str = accounts.get(args.which, {}).get("cookies_str", "")
+
+    if not cookies_str:
+        print(f"{args.which} 还没配置 cookie。用 --set \"cookie字符串\" 设置。")
+        return
+
+    if args.test or args.set is not None:
+        ok, message = xhs_client.test_account(args.which, cookies_str)
+        print(f"{args.which}: {'✅' if ok else '❌'} {message}")
+    else:
+        preview = cookies_str[:50] + ("..." if len(cookies_str) > 50 else "")
+        print(f"{args.which} 已配置: {preview}")
+        print("加 --test 测试连接是否正常,加 --set \"新cookie字符串\" 更新。")
+
+
 def main():
     parser = argparse.ArgumentParser(description="小红书内容运营 pipeline")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -102,6 +128,12 @@ def main():
     publish_parser = subparsers.add_parser("publish", help="发布已审核通过的草稿")
     publish_parser.add_argument("--dry-run", action="store_true")
     publish_parser.set_defaults(func=cmd_publish)
+
+    cookie_parser = subparsers.add_parser("cookie", help="查看 / 更新 / 测试账号 cookie")
+    cookie_parser.add_argument("--which", choices=["pc", "creator"], required=True)
+    cookie_parser.add_argument("--set", metavar="COOKIE_STR", help="设置新的 cookies_str")
+    cookie_parser.add_argument("--test", action="store_true", help="测试当前 cookie 是否有效")
+    cookie_parser.set_defaults(func=cmd_cookie)
 
     args = parser.parse_args()
     args.func(args)

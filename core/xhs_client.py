@@ -28,6 +28,40 @@ def load_accounts():
     return json.loads(ACCOUNTS_PATH.read_text(encoding="utf-8"))
 
 
+def save_account_cookie(which, cookies_str):
+    accounts = {"pc": {"cookies_str": ""}, "creator": {"cookies_str": ""}}
+    if ACCOUNTS_PATH.exists():
+        accounts = json.loads(ACCOUNTS_PATH.read_text(encoding="utf-8"))
+    accounts.setdefault(which, {})["cookies_str"] = cookies_str
+    ACCOUNTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    ACCOUNTS_PATH.write_text(
+        json.dumps(accounts, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+
+
+def test_account(which, cookies_str):
+    """Cheap connectivity probe for a stored cookie. Returns (ok, message).
+
+    creator uses get_topic rather than get_publish_note_info — the latter's
+    endpoint gets connection-reset by XHS's anti-bot layer in this environment
+    regardless of cookie validity, while get_topic is a reliable, lightweight
+    probe for creator-session validity."""
+    try:
+        if which == "pc":
+            call("pc", "get_user_self_info", {"cookies_str": cookies_str}, retries=2)
+        else:
+            cookies = cookies_dict_from_str(cookies_str)
+            call(
+                "creator",
+                "get_topic",
+                {"keyword": "test", "cookies": cookies},
+                retries=2,
+            )
+        return True, "连接正常"
+    except XhsApiError as exc:
+        return False, str(exc)
+
+
 def cookies_dict_from_str(cookies_str):
     """Mirrors the vendored runtime's trans_cookies() for callers that need a
     cookies dict directly (some creator methods take `cookies`, not `cookies_str`,
