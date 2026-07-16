@@ -12,6 +12,8 @@ XHS_API_TOOL = (
 )
 ACCOUNTS_PATH = PROJECT_ROOT / "config" / "accounts.json"
 
+DESC_CHAR_LIMIT = 1000  # XHS note body hard limit
+
 
 class XhsApiError(RuntimeError):
     pass

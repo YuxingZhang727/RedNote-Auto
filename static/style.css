@@ -130,6 +130,8 @@ button:disabled { cursor: not-allowed; opacity: 0.5; }
   font-family: inherit;
 }
 .draft-card textarea.desc { height: 160px; }
+.char-count { margin: 4px 0 0; font-size: 12px; color: #888; text-align: right; }
+.char-count.over-limit { color: #b3261e; font-weight: 600; }
 .draft-thumbs img { width: 60px; height: 80px; object-fit: cover; border-radius: 4px; margin: 4px 4px 0 0; }
 .draft-actions { margin-top: 10px; display: flex; gap: 10px; }
 .draft-actions .approve { border-color: #8fc99b; color: #1a7f37; }

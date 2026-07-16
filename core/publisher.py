@@ -38,6 +38,16 @@ def _resolve_topics(candidates, creator_cookies_dict):
     return resolved
 
 
+def _final_desc_length(desc, topics):
+    """post_note appends " #{name}[话题]# " to desc for every resolved topic —
+    replicate that here so we can check the *actual* outgoing length against
+    XHS's limit, not just the pre-topics draft text."""
+    total = len(desc)
+    for name in topics:
+        total += len(f" #{name}[话题]# ")
+    return total
+
+
 def _build_note_info(draft, creator_cookies_dict):
     image_paths = json.loads(draft["image_paths_json"])
     candidates = _extract_hashtags(draft["new_desc"])
@@ -75,6 +85,18 @@ def publish_approved(conn, dry_run=False):
         if not note_info["images"]:
             print(f"draft #{draft['id']} 没有配图,跳过发布(先补充图片再重新审核)")
             results.append({"draft_id": draft["id"], "status": "skipped_no_image"})
+            continue
+
+        final_length = _final_desc_length(note_info["desc"], note_info["topics"])
+        if final_length > xhs_client.DESC_CHAR_LIMIT:
+            print(
+                f"draft #{draft['id']} 正文加上话题标签后共 {final_length} 字,"
+                f"超过小红书 {xhs_client.DESC_CHAR_LIMIT} 字上限,跳过发布"
+                "(回到审核里编辑缩短正文再重新批准)"
+            )
+            results.append(
+                {"draft_id": draft["id"], "status": "skipped_too_long", "length": final_length}
+            )
             continue
 
         if dry_run:

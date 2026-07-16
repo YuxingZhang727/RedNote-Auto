@@ -5,6 +5,8 @@ const STATUS_LABELS = {
   published: "已发布",
 };
 
+const DESC_CHAR_LIMIT = 1000; // XHS note body hard limit
+
 async function api(path, options) {
   const resp = await fetch(path, {
     headers: { "Content-Type": "application/json" },
@@ -225,6 +227,7 @@ function draftCard(draft) {
       <input type="text" class="title" value="${escapeHtml(draft.new_title)}" />
       <label>正文</label>
       <textarea class="desc">${escapeHtml(draft.new_desc)}</textarea>
+      <p class="char-count"></p>
       ${draft.image_paths.length ? `<div class="draft-thumbs">${thumbs}</div>` : '<p class="meta">(无配图,需要你自己补充)</p>'}
       <div class="draft-actions">
         <button class="approve">批准</button>
@@ -245,6 +248,17 @@ async function loadDrafts() {
 
   data.drafts.forEach((draft) => {
     const card = document.getElementById(`draft-${draft.id}`);
+
+    const descEl = card.querySelector(".desc");
+    const counterEl = card.querySelector(".char-count");
+    const updateCounter = () => {
+      const len = descEl.value.length;
+      counterEl.textContent = `${len} / ${DESC_CHAR_LIMIT} 字`;
+      counterEl.classList.toggle("over-limit", len > DESC_CHAR_LIMIT);
+    };
+    descEl.addEventListener("input", updateCounter);
+    updateCounter();
+
     card.querySelector(".approve").addEventListener("click", async () => {
       try {
         await api(`/api/drafts/${draft.id}/approve`, { method: "POST" });
