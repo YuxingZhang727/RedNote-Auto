@@ -84,7 +84,7 @@ DEEPSEEK_API_KEY=你的-deepseek-key
 
 获取方式:浏览器登录对应站点后,按 F12 打开开发者工具 → Network(网络)标签 → 刷新页面或触发任意请求 → 点开任意一个请求 → 在请求头(Request Headers)里找到 `cookie` 字段,复制完整值。
 
-`.env` 和 `config/accounts.json` 都已经在 `.gitignore` 里,不会被提交到仓库。cookie 会过期(一般几天到几周不等),失效后按同样方式重新获取、替换即可——网页版界面会自动检测并提醒。
+`.env` 和 `config/accounts.json` 都已经在 `.gitignore` 里,不会被提交到仓库。cookie 会过期(一般几天到几周不等),失效后按同样方式重新获取、替换即可——网页版界面会自动检测并提醒,命令行也有专门的命令(见下面「查看 / 更新 / 测试 cookie」)。
 
 ## 用法
 
@@ -117,6 +117,16 @@ python cli.py collect --keyword "具体关键词" --limit 10
 ```
 
 每个命令都是独立、可重复运行的:`draft` 只处理 `collect`/`explore` 采集到的、状态还是"新"的笔记;重复运行 `collect`/`explore` 不会导致同一篇笔记被重复采集(按 note_id 去重)。
+
+#### 查看 / 更新 / 测试 cookie
+
+```bash
+python cli.py cookie --which pc                      # 查看当前状态(是否已配置、预览前几十位)
+python cli.py cookie --which pc --test                # 测试当前 cookie 是否还有效
+python cli.py cookie --which pc --set "新的cookie字符串"  # 保存新 cookie,保存后自动测试一次
+```
+
+`--which` 传 `pc` 或 `creator`,分别对应网页版 / 创作者平台两个账号。
 
 ### 网页
 
