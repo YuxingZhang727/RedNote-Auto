@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8" />
+  <title>小红书内容运营 Pipeline</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div id="banner" class="banner hidden"></div>
+
+  <h1>小红书内容运营 Pipeline</h1>
+
+  <section id="accounts-panel" class="panel">
+    <h2>账号 / Cookie</h2>
+    <div class="account-row" data-which="pc">
+      <div class="account-head">
+        <strong>PC 账号</strong>
+        <span class="badge" data-role="status">未测试</span>
+        <span class="meta" data-role="updated"></span>
+        <button data-action="test">测试连接</button>
+      </div>
+      <textarea data-role="cookie-input" placeholder="粘贴新的 pc cookies_str..."></textarea>
+      <button data-action="save">保存</button>
+    </div>
+    <div class="account-row" data-which="creator">
+      <div class="account-head">
+        <strong>创作者账号</strong>
+        <span class="badge" data-role="status">未测试</span>
+        <span class="meta" data-role="updated"></span>
+        <button data-action="test">测试连接</button>
+      </div>
+      <textarea data-role="cookie-input" placeholder="粘贴新的 creator cookies_str..."></textarea>
+      <button data-action="save">保存</button>
+    </div>
+  </section>
+
+  <section id="explore-panel" class="panel">
+    <h2>生成草稿</h2>
+    <div class="form-row">
+      <label>大方向话题 <input id="explore-theme" type="text" placeholder="例如：跨境电商独立站选品" /></label>
+      <label>拆几个小切口 <input id="explore-topics" type="number" value="3" min="1" max="10" /></label>
+      <label>每个切口采集数量 <input id="explore-limit" type="number" value="5" min="1" max="20" /></label>
+      <button id="explore-run">开始 Explore</button>
+    </div>
+    <div class="form-row">
+      <button id="draft-run">对新采集的笔记生成草稿</button>
+    </div>
+    <pre id="explore-log" class="log"></pre>
+  </section>
+
+  <section id="tree-panel" class="panel">
+    <h2>Pipeline 概览</h2>
+    <div id="tree-root"></div>
+  </section>
+
+  <section id="review-panel" class="panel">
+    <h2>待审核草稿</h2>
+    <div id="draft-list"></div>
+  </section>
+
+  <section id="publish-panel" class="panel">
+    <h2>发布</h2>
+    <p><span id="approved-count">0</span> 条草稿已批准待发布</p>
+    <button id="dry-run-btn">Dry-run 预览</button>
+    <label><input type="checkbox" id="confirm-real-publish" /> 我确认要真实发布(不可逆)</label>
+    <button id="real-publish-btn" disabled>真实发布</button>
+    <pre id="publish-log" class="log"></pre>
+  </section>
+
+  <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>
